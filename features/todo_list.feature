@@ -32,3 +32,10 @@ Feature: To-Do List Manager
       | Pay bills     | Pay utility bills   | Medium   | Pendiente |
     When el usuario vacia el to-do list
     Then el to-do list tiene que estar limpia
+
+  Scenario: Eliminar un task especifico del to-do list con el ID
+    Given el to-do list contiene tasks:
+      | Task         | Status  |
+      | Buy groceries | Pending |
+    When el usuario escribe el task ID for "Buy groceries"
+    Then el task "{task_nombre}" debe estar eliminado del to-do list

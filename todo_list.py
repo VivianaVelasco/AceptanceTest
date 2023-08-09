@@ -1,6 +1,7 @@
 class Task:
-    def __init__(self, nombre, descripcion, prioridad, status="Pendiente"):
+    def __init__(self, nombre, id, descripcion, prioridad, status="Pendiente"):
         self.nombre = nombre
+        self.id = id
         self.descripcion = descripcion
         self.prioridad = prioridad
         self.status = status
@@ -8,9 +9,12 @@ class Task:
 class TodoListManager:
     def __init__(self):
         self.tasks = []
+        self.task_counter = 1 
 
     def add_task(self, task):
+        task = Task(self.task_counter, task_nombre)
         self.tasks.append(task)
+        self.task_counter += 1
 
     def list_tasks(self):
         return self.tasks
@@ -20,6 +24,12 @@ class TodoListManager:
             if task.nombre == task_nombre:
                 task.status = "Completado"
                 break
+    
+    def delete_task(self, task_id):
+        initial_task_count = len(self.tasks)
+        self.tasks = [task for task in self.tasks if task.id != id]
+        updated_task_count = len(self.tasks)
+
 
     def clear_list(self):
         self.tasks = []
@@ -33,7 +43,8 @@ if __name__ == "__main__":
         print("2. Listar todos los tasks")
         print("3. Marcar un task como Completado")
         print("4. Limpiar toda to-do list")
-        print("5. Salir")
+        print("5. Eliminar un task especifico del to-do list por id")
+        print("6. Salir")
 
         eleccion = input("Enter your eleccion: ")
 
@@ -64,6 +75,15 @@ if __name__ == "__main__":
             print("To-do list vacia.")
 
         elif eleccion == "5":
+            tasks = todo_manager.list_tasks()
+            print("Tasks:")
+            for task in tasks:
+                print({task.id} +" - "+{task.nombre})
+
+            task_id = input("Ingrese el id del task a eliminar: ")
+            todo_manager.delete_task(id)
+
+        elif eleccion == "6":
             print("Existente...")
             break
 

@@ -50,3 +50,21 @@ def step_when_user_clears_todo_list(contexto):
 def step_then_todo_list_should_be_empty(contexto):
     tasks = contexto.todo_manager.list_tasks()
     assert len(tasks) == 0
+
+@when('El usuario escribe el id del "{task_nombre}" que se desea eliminar')
+def step_impl(contexto, task_nombre):
+    task_id = None
+    for t in contexto.todo_manager.list_tasks():
+        if t.task_nombre == task_nombre:
+            task_id = t.task_id
+            break
+
+    assert task_id is not None, f"Task '{task_nombre}' no encontrado en el to-do list."
+
+    contexto.delete_task = task_nombre
+    contexto.todo_manager.delete_task(task_id)
+
+@then('El task "{task_nombre}" debe estar eliminado del to-do list')
+def step_impl(contexto, task_nombre):
+    tasks = [t.task_nombre for t in contexto.todo_manager.list_tasks()]
+    assert task_nombre not in tasks, f"Task '{task_nombre}' sigue existiendo en la lista."
