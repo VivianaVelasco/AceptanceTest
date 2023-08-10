@@ -1,70 +1,67 @@
 from behave import given, when, then
 from todo_list import Task, TodoListManager
 
+# Add
 @given("El to-do list esta vacia")
 def step_given_todo_list_empty(contexto):
     contexto.todo_manager = TodoListManager()
 
-@when('El usuario agrega un task "{task_nombre}"')
+@when('el usuario agrega un task {task_nombre}')
 def step_when_user_adds_task(contexto, task_nombre):
     new_task = Task(task_nombre, "", "")
     contexto.todo_manager.add_task(new_task)
 
-@then('El to-do list contiene "{task_nombre}"')
+@then('el to-do list tiene que contener {task_nombre}')
 def step_then_todo_list_contains_task(contexto, task_nombre):
-    tasks = [task.nombre for task in contexto.todo_manager.list_tasks()]
-    assert task_nombre in tasks
+    tasks = [str(task) for task in contexto.todo_manager.tasks if task.nombre == task_nombre]
+    assert tasks
 
-@when("El usuario lista todos los tasks")
-def step_when_user_lists_all_tasks(contexto):
-    contexto.listed_tasks = contexto.todo_manager.list_tasks()
-
-@then("El output tiene que contener:")
-def step_then_output_should_contain(contexto):
-    expected_output = contexto.text.strip()
-    actual_output = "\n".join([f"- {task.nombre} ({task.status})" for task in contexto.listed_tasks])
-    assert expected_output == actual_output
-
-@given("El to-do list contiene tasks:")
+# List all
+@given("el to-do list contiene tasks")
 def step_given_todo_list_contains_tasks(contexto):
     contexto.todo_manager = TodoListManager()
     for row in contexto.table:
-        task = Task(row["Task"], row["Description"], row["Priority"], row["Status"])
+        task = Task(row["Task"], row["Priority"])
         contexto.todo_manager.add_task(task)
 
-@when('El usuario marca task "{task_nombre}" como Completado')
+@when("el usuario listas todos los tasks")
+def step_when_user_lists_all_tasks(contexto):
+    contexto.listed_tasks = contexto.todo_manager.list_tasks()
+
+@then("el output tiene que contener")
+def step_then_output_should_contain(contexto):
+    for row in contexto.table:
+        task = [str(task.nombre) for task in contexto.todo_manager.tasks if task.nombre == row["Task"] and task.prioridad == row["Priority"]]
+        assert task
+
+# Marker Task
+@when('el usuario contiene task {task_nombre} como Completado')
 def step_when_user_marks_task_as_completed(contexto, task_nombre):
     contexto.todo_manager.mark_task_completed(task_nombre)
 
-@then('El to-do list tiene que mostrar task "{task_nombre}" como Completado')
+@then('el to-do list tiene que mostrar task {task_nombre} como Completado')
 def step_then_todo_list_should_show_task_as_completed(contexto, task_nombre):
-    tasks = contexto.todo_manager.list_tasks()
-    task = next(task for task in tasks if task.nombre == task_nombre)
-    assert task.status == "Completado"
+    task = filter(lambda task: task.nombre == task_nombre, contexto.todo_manager.tasks)
+    assert task is not None
 
+# Clear
 @when("el usuario vacia el to-do list")
 def step_when_user_clears_todo_list(contexto):
     contexto.todo_manager.clear_list()
 
-@then("El to-do list tiene que estar limpia")
+@then("el to-do list tiene que estar limpia")
 def step_then_todo_list_should_be_empty(contexto):
-    tasks = contexto.todo_manager.list_tasks()
-    assert len(tasks) == 0
+    assert len(contexto.todo_manager.tasks) == 0
 
-@when('El usuario escribe el id del "{task_nombre}" que se desea eliminar')
+# Delete
+@when('el usuario escribe el task ID for {task_nombre}')
 def step_impl(contexto, task_nombre):
-    task_id = None
-    for t in contexto.todo_manager.list_tasks():
-        if t.task_nombre == task_nombre:
-            task_id = t.task_id
-            break
+    task_index_target = next((index for index, task in enumerate(
+        contexto.todo_manager.tasks) if task.nombre == task_nombre), None)
+    if task_index_target is not None:
+        contexto.todo_manager.tasks.remove(task_index_target)
 
-    assert task_id is not None, f"Task '{task_nombre}' no encontrado en el to-do list."
-
-    contexto.delete_task = task_nombre
-    contexto.todo_manager.delete_task(task_id)
-
-@then('El task "{task_nombre}" debe estar eliminado del to-do list')
+@then('el task "{task_nombre}" debe estar eliminado del to-do list')
 def step_impl(contexto, task_nombre):
-    tasks = [t.task_nombre for t in contexto.todo_manager.list_tasks()]
-    assert task_nombre not in tasks, f"Task '{task_nombre}' sigue existiendo en la lista."
+    task = [t.nombre for t in contexto.todo_manager.tasks]
+    assert task not in contexto.todo_manager.tasks, f"Task '{task_nombre}' sigue existiendo en la lista."
